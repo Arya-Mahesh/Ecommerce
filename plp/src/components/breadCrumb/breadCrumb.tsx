@@ -1,8 +1,9 @@
+"use client";
 import { Breadcrumbs, Typography, Link as MUILink, Box, Container } from "@mui/material";
 import NextLink from "next/link";
 import { useParams } from "next/navigation";
 
-export default function Breadcrumb() {
+export default function BreadCrumb() {
 
     const params = useParams();
     console.log("Arya", params);

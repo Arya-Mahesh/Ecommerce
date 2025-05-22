@@ -1,12 +1,19 @@
+"use client";
+import React, { useEffect, useState } from "react";
 import ProductCard from "@/components/productCard/productCard";
 import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import ActionBar from "@/components/actionBar/actionBar";
-import Breadcrumb from "@/components/breadCrumb/breadCrumb";
+import BreadCrumb from "@/components/breadCrumb/breadCrumb";
+import { useSearchParams } from "next/navigation";
 //import Grid from "@mui/material/Grid";
 
 export default function ProductPage( ) {
+     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+     const searchParams = useSearchParams();
      
+
+
   const props  =  [ {
             "hasSingleSKU": true,
             "manufacturer": "Diamond",
@@ -1341,15 +1348,30 @@ export default function ProductPage( ) {
             ],
             "shippingpromodesc": "Free Shipping on orders over $49!"
         },]
+ 
+   useEffect(() => {
+    const filter = searchParams.get("filter");
+    if (filter && filter.startsWith("brand|")) {
+      const brands = filter.split("|").slice(1);
+      setSelectedBrands(brands);
+    }
+  }, [searchParams]);
+  // Add state for selectedBrands
+  const filteredProducts =
+    selectedBrands.length === 0
+      ? props
+      : props.filter((product) =>
+          selectedBrands.includes(product.manufacturer)
+        );
 
-   
+
   return (
        <Container>
-      <Breadcrumb />
-      <ActionBar />
+      <BreadCrumb />
+      <ActionBar selectedBrands={selectedBrands} setSelectedBrands={setSelectedBrands} />
       <Grid container spacing={2}>
-        {props.map((product) => (
-          <Grid item key={product.uniqueID}>
+         {filteredProducts.map((product) => (
+          <Grid item key={product.uniqueID} xs={12} sm={6} md={4} lg={3}>
             <ProductCard data={product} />
           </Grid>
         ))}
