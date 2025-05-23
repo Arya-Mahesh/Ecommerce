@@ -5,15 +5,35 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import ActionBar from "@/components/actionBar/actionBar";
 import BreadCrumb from "@/components/breadCrumb/breadCrumb";
-import { useSearchParams } from "next/navigation";
-//import Grid from "@mui/material/Grid";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+
 
 export default function ProductPage( ) {
-     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-     const searchParams = useSearchParams();
-     
+    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const [selectedPrice, setSelectedPrice] = useState<string[]>([]); 
 
 
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams?.toString() || "");
+        if (selectedBrands.length > 0) {
+         params.set("brand", selectedBrands.join(","));
+        } else {
+         params.delete("brand");
+        }
+        if (selectedPrice.length > 0) {
+         params.set("price", selectedPrice.join(","));
+        } else {
+        params.delete("price");
+        }
+         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [selectedBrands, selectedPrice, pathname, router, searchParams]);
+
+    
   const props  =  [ {
             "hasSingleSKU": true,
             "manufacturer": "Diamond",
@@ -1348,27 +1368,38 @@ export default function ProductPage( ) {
             ],
             "shippingpromodesc": "Free Shipping on orders over $49!"
         },]
- 
-   useEffect(() => {
-    const filter = searchParams.get("filter");
-    if (filter && filter.startsWith("brand|")) {
-      const brands = filter.split("|").slice(1);
-      setSelectedBrands(brands);
-    }
-  }, [searchParams]);
-  // Add state for selectedBrands
-  const filteredProducts =
-    selectedBrands.length === 0
-      ? props
-      : props.filter((product) =>
-          selectedBrands.includes(product.manufacturer)
-        );
+ useEffect(() => {
+  const brands = searchParams?.get("brand");
+  const prices = searchParams?.get("price");
+  setSelectedBrands(brands ? brands.split(",") : []);
+  setSelectedPrice(prices ? prices.split(",") : []);
+  // eslint-disable-next-line
+}, []);
+   
+useEffect(() => {
+  console.log("Selected Filters:", selectedBrands, selectedPrice);                                
+}, [selectedBrands, selectedPrice]);
 
+  // Add state for selectedBrands
+  const filteredProducts = props.filter((product) => {
+  const brandMatch =
+    selectedBrands.length === 0 || selectedBrands.includes(product.manufacturer);
+  const priceMatch =
+    selectedPrice.length === 0 ||
+    selectedPrice.some((priceRange) => {
+      const [min, max] = priceRange
+        .replace("$", "")
+        .split(" - ")
+        .map((v) => parseFloat(v.replace("$", "")));
+      return product.price >= min && product.price <= max;
+    });
+  return brandMatch && priceMatch;
+});
 
   return (
        <Container>
       <BreadCrumb />
-      <ActionBar selectedBrands={selectedBrands} setSelectedBrands={setSelectedBrands} />
+      <ActionBar selectedBrands={selectedBrands} setSelectedBrands={setSelectedBrands} selectedPrice={selectedPrice} setSelectedPrice={setSelectedPrice}/>
       <Grid container spacing={2}>
          {filteredProducts.map((product) => (
           <Grid item key={product.uniqueID} xs={12} sm={6} md={4} lg={3}>
