@@ -18,21 +18,40 @@ export default function ProductPage( ) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams?.toString() || "");
-        if (selectedBrands.length > 0) {
-         params.set("brand", selectedBrands.join(","));
-        } else {
-         params.delete("brand");
-        }
-        if (selectedPrice.length > 0) {
-         params.set("price", selectedPrice.join(","));
-        } else {
-        params.delete("price");
-        }
-         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }, [selectedBrands, selectedPrice, pathname, router, searchParams]);
+   useEffect(() => {
+  // Unique IDs for filters
+  const priceId = "6z";
+  const brandId = "1q";
 
+  // Format price filter
+  const priceFilter = selectedPrice
+    .map((range) => {
+      const [min, max] = range.replace(/\$/g, "").split(" - ");
+      return `{${min} TO ${max}]`;
+    })
+    .join("^");
+
+  // Format brand filter
+  const brandFilter = selectedBrands.join("^");
+
+  // Build filter string
+  const filterParts: string[] = [];
+  if (priceFilter) filterParts.push(`${priceId}|(${priceFilter})`);
+  if (brandFilter) filterParts.push(`${brandId}|${brandFilter}`);
+  const filterString = filterParts.join("||");
+
+  const params = new URLSearchParams(searchParams?.toString() || "");
+  if (filterString) {
+    params.set("filter", filterString);
+  } else {
+    params.delete("filter");
+  }
+  // Remove old params
+  params.delete("brand");
+  params.delete("price");
+
+  router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+}, [selectedBrands, selectedPrice, pathname, router, searchParams]);
     
   const props  =  [ {
             "hasSingleSKU": true,

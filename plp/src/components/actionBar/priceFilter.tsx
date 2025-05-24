@@ -20,7 +20,6 @@ export default function PriceFilter({ selectedPrice, setSelectedPrice } : PriceF
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {event.preventDefault();  setPriceMenu(event.currentTarget);}
     const handleClose = () => setPriceMenu(null);
 
-
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -34,16 +33,24 @@ export default function PriceFilter({ selectedPrice, setSelectedPrice } : PriceF
         }
         setSelectedPrice(newSelected);
 
-        const filterValue = newSelected.length > 0 ? `price|${newSelected.join("|")}` : undefined;
-        const params = new URLSearchParams(searchParams.toString());
-        if (filterValue) {
-            params.set("filter", filterValue);
-        } else {
-            params.delete("filter");
-        }
-        router.replace(`${pathname}?${params.toString()}`);
-    }
+       // Unique ID for price filter
+  const priceId = "6z";
+  // Format selected prices as {min TO max]
+  const priceFilter = newSelected
+    .map((range) => {
+      const [min, max] = range.replace(/\$/g, "").split(" - ");
+      return `{${min} TO ${max}]`;
+    })
+    .join("^");
 
+       const params = new URLSearchParams(searchParams.toString());
+  if (priceFilter) {
+    params.set("filter", `${priceId}|(${priceFilter})`);
+  } else {
+    params.delete("filter");
+  }
+  router.replace(`${pathname}?${params.toString()}`);
+};
     return(
         <Box>
         <Button

@@ -32,16 +32,26 @@ export default function BrandFilter({ selectedBrands, setSelectedBrands } : Bran
         newSelected = [...selectedBrands, brand];
     }
     setSelectedBrands(newSelected);
+    
 
-    const filterValue = newSelected.length > 0 ? `brand|${newSelected.join("|")}` : undefined;
-    const params = new URLSearchParams(searchParams.toString());
-    if (filterValue) {
-      params.set("filter", filterValue);
-    } else {
-      params.delete("filter");
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-    }
+   // Unique ID for brand filter
+  const brandId = "1q";
+  // Format selected brands
+  const brandFilter = newSelected.join("^");
+
+  let filterString = "";
+  if (brandFilter) {
+    filterString = `${brandId}|${brandFilter}`;
+  }
+
+  const params = new URLSearchParams(searchParams.toString());
+  if (filterString) {
+    params.set("filter", filterString);
+  } else {
+    params.delete("filter");
+  }
+  router.replace(`${pathname}?${params.toString()}`);
+};
 
    return(
     <Box>
